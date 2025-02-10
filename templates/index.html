@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 Localization</title>
+  <!-- Include Plotly from CDN -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <h1>ESP32 Localization Dashboard</h1>
+  <div id="plot" style="width:600px;height:600px;"></div>
+  
+  <script>
+    function fetchData() {
+      fetch('/data')
+      .then(response => response.json())
+      .then(data => {
+        const fixedNodes = data.fixed_nodes;
+        const mobile = data.mobile_node;
+        
+        let fixedX = [];
+        let fixedY = [];
+        let fixedLabels = [];
+        
+        for (const node in fixedNodes) {
+          fixedX.push(fixedNodes[node].x);
+          fixedY.push(fixedNodes[node].y);
+          fixedLabels.push(node);
+        }
+        
+        // Mobile node: only add if data is available.
+        let mobileX = (mobile.x !== null) ? [mobile.x] : [];
+        let mobileY = (mobile.y !== null) ? [mobile.y] : [];
+        
+        // Fixed nodes trace (blue dots with labels)
+        const fixedTrace = {
+          x: fixedX,
+          y: fixedY,
+          mode: 'markers+text',
+          type: 'scatter',
+          marker: { color: 'blue', size: 12 },
+          text: fixedLabels,
+          name: 'Fixed Nodes'
+        };
+        
+        // Mobile node trace (red dot)
+        const mobileTrace = {
+          x: mobileX,
+          y: mobileY,
+          mode: 'markers',
+          type: 'scatter',
+          marker: { color: 'red', size: 12 },
+          name: 'Mobile Node'
+        };
+        
+        const layout = {
+          title: 'ESP32 Localization',
+          xaxis: { title: 'X coordinate' },
+          yaxis: { title: 'Y coordinate' },
+          width: 600,
+          height: 600
+        };
+        
+        Plotly.newPlot('plot', [fixedTrace, mobileTrace], layout);
+      });
+    }
+    
+    // Refresh the plot every 5 seconds.
+    setInterval(fetchData, 5000);
+    fetchData();
+  </script>
+</body>
+</html>
